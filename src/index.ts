@@ -5,7 +5,7 @@ import { z } from "zod";
 // Define our MCP agent with tools
 export class MyMCP extends McpAgent {
 	server = new McpServer({
-		name: "Authless Calculator",
+		name: "Backpack",
 		version: "1.0.0",
 	});
 
@@ -55,6 +55,20 @@ export class MyMCP extends McpAgent {
 				return { content: [{ type: "text", text: String(result) }] };
 			},
 		);
+
+		// About Backpack tool
+		this.server.tool("about-backpack", {}, async () => ({
+			content: [
+				{
+					type: "text",
+					text: `Backpack 🎒 — An MCP Playground for Shape-Shifting Tools
+
+Backpack is an experimental MCP server that lets you build, tweak, and share AI tools inside the server—no IDE or code pushes required. Using handy meta-tools, you can spin up new "plastic-tools," adjust them on the fly, and decide whether each one stays private or goes public—all through the same chat interface that uses them. 🛠️✨
+
+We're treating Backpack as a learning adventure, so expect rapid iterations, a few bumps, and plenty of room for your ideas to steer where we head next. Dive in, pack your favorite tools, and help us see what an MCP toolbox can become!`,
+				},
+			],
+		}));
 	}
 }
 

@@ -1,6 +1,12 @@
-# Building a Remote MCP Server on Cloudflare (Without Auth)
+# Backpack 🎒 — An MCP Playground for Shape-Shifting Tools
 
-This example allows you to deploy a remote MCP server that doesn't require authentication on Cloudflare Workers. 
+Backpack is an experimental MCP server that lets you build, tweak, and share AI tools inside the server—no IDE or code pushes required. Using handy meta-tools, you can spin up new "plastic-tools," adjust them on the fly, and decide whether each one stays private or goes public—all through the same chat interface that uses them. 🛠️✨
+
+We're treating Backpack as a learning adventure, so expect rapid iterations, a few bumps, and plenty of room for your ideas to steer where we head next. Dive in, pack your favorite tools, and help us see what an MCP toolbox can become!
+
+## About This Server
+
+This is a remote MCP server that runs on Cloudflare Workers without authentication. 
 
 ## Get started: 
 
@@ -72,7 +78,7 @@ Update with this configuration:
 ```json
 {
   "mcpServers": {
-    "calculator": {
+    "backpack": {
       "command": "npx",
       "args": [
         "mcp-remote",
