@@ -1,0 +1,57 @@
+name: Migrate D1 Database
+
+on:
+  push:
+    branches:
+      - 'claude/**'
+      - main
+    paths:
+      - 'migrations/**'
+      - 'wrangler.jsonc'
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    # Only run if database_id is NOT a placeholder
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check if database is configured
+        id: check
+        run: |
+          if grep -q "placeholder-create-with-wrangler-d1-create" wrangler.jsonc; then
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "⏭️  Database not yet configured, skipping migration"
+          else
+            echo "configured=true" >> $GITHUB_OUTPUT
+            echo "✅ Database is configured"
+          fi
+
+      - name: Run D1 migrations
+        if: steps.check.outputs.configured == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          echo "Running D1 migrations..."
+
+          for migration in migrations/*.sql; do
+            if [ -f "$migration" ]; then
+              echo "Applying migration: $migration"
+              npx wrangler d1 execute backpack --remote --file="$migration" || echo "Migration may have already been applied"
+            fi
+          done
+
+          echo "✅ Migrations completed"

@@ -54,6 +54,32 @@ Backpack is a universal MCP (Model Context Protocol) server that lets you person
 
 ### For Developers
 
+#### Automated Setup (Recommended)
+
+The repository includes GitHub Actions workflows that automatically handle D1 database creation and deployment:
+
+1. **Add GitHub Secrets**
+
+   Go to your repository → Settings → Secrets and variables → Actions → New repository secret
+
+   Add these secrets:
+   - `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token ([create one here](https://dash.cloudflare.com/profile/api-tokens))
+     - Permissions needed: D1 Edit, Workers Scripts Edit, Account Settings Read
+   - `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID (found in dashboard URL or Workers overview)
+
+2. **Push to GitHub**
+   ```bash
+   git push origin your-branch
+   ```
+
+   The workflows will automatically:
+   - ✅ Create the D1 database
+   - ✅ Update `wrangler.jsonc` with the database ID
+   - ✅ Run migrations
+   - ✅ Deploy to Cloudflare Workers
+
+#### Manual Setup
+
 1. **Clone and Install**
    ```bash
    git clone <your-repo>
@@ -66,13 +92,16 @@ Backpack is a universal MCP (Model Context Protocol) server that lets you person
    # Create the database
    wrangler d1 create backpack
 
-   # Update wrangler.jsonc with the database_id from the output
+   # Copy the database_id from output and update wrangler.jsonc
    ```
 
 3. **Run Migrations**
    ```bash
    # Local development
    wrangler d1 execute backpack --local --file=./migrations/0001_initial.sql
+
+   # Production
+   wrangler d1 execute backpack --remote --file=./migrations/0001_initial.sql
    ```
 
 4. **Start Development Server**
@@ -84,10 +113,6 @@ Backpack is a universal MCP (Model Context Protocol) server that lets you person
 
 5. **Deploy to Production**
    ```bash
-   # Run migrations on remote database
-   wrangler d1 execute backpack --remote --file=./migrations/0001_initial.sql
-
-   # Deploy
    npm run deploy
    ```
 
