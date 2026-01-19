@@ -241,11 +241,14 @@ export function loginPage(error?: string): string {
 	);
 }
 
-export function dashboardPage(user: {
-	email: string;
-	api_key: string;
-}): string {
-	const mcpUrl = "https://backpack.YOUR-ACCOUNT.workers.dev/sse";
+export function dashboardPage(
+	user: {
+		email: string;
+		api_key: string;
+	},
+	hostname: string,
+): string {
+	const mcpUrl = `https://${hostname}/sse`;
 
 	return layout(
 		"Dashboard",
@@ -255,38 +258,37 @@ export function dashboardPage(user: {
 
         <div class="api-key">
             <strong>Your API Key:</strong><br>
-            ${user.api_key}
+            <span style="user-select: all;">${user.api_key}</span>
         </div>
 
         <div class="instructions">
-            <h3>📱 Connect Claude Desktop</h3>
-            <p>1. Open Claude Desktop and go to Settings → Developer → Edit Config</p>
-            <p>2. Add this configuration:</p>
+            <h3>📱 Connect to Claude Desktop</h3>
+            <p><strong>Step 1:</strong> Copy your API key above</p>
+            <p><strong>Step 2:</strong> In Claude Desktop, go to <strong>Settings → Developer → Edit Config</strong></p>
+            <p><strong>Step 3:</strong> Add this to your config file:</p>
             <pre><code>{
   "mcpServers": {
     "backpack": {
       "command": "npx",
-      "args": [
-        "mcp-remote",
-        "${mcpUrl}"
-      ],
+      "args": ["mcp-remote", "${mcpUrl}"],
       "env": {
-        "BACKPACK_API_KEY": "${user.api_key}"
+        "BACKPACK_API_KEY": "PASTE_YOUR_API_KEY_HERE"
       }
     }
   }
 }</code></pre>
-            <p>3. Restart Claude Desktop</p>
+            <p><strong>Step 4:</strong> Replace <code>PASTE_YOUR_API_KEY_HERE</code> with your API key</p>
+            <p><strong>Step 5:</strong> Save the config and restart Claude Desktop</p>
+            <p style="margin-top: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                <strong>Note:</strong> The <code>npx mcp-remote</code> command is required because Claude Desktop
+                needs a local process to connect to remote MCP servers. It will be installed automatically
+                when Claude starts.
+            </p>
         </div>
 
         <div class="instructions">
-            <h3>🤖 Connect ChatGPT</h3>
-            <p>ChatGPT support for MCP is coming soon. Stay tuned!</p>
-        </div>
-
-        <div class="instructions">
-            <h3>✨ Connect Gemini</h3>
-            <p>Gemini support for MCP is coming soon. Stay tuned!</p>
+            <h3>🤖 ChatGPT & ✨ Gemini</h3>
+            <p>Support for ChatGPT and Gemini is coming soon as they add MCP compatibility.</p>
         </div>
 
         <div style="margin-top: 30px;">
