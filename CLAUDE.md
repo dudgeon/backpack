@@ -168,7 +168,40 @@ npm run cf-typegen
 
 ## Setup Instructions
 
-### Initial Setup
+### Automated Setup (Recommended)
+
+The repository includes GitHub Actions workflows that automatically handle database creation and deployment:
+
+1. **Add GitHub Secrets** (One-time setup)
+
+   Navigate to: `Settings → Secrets and variables → Actions → New repository secret`
+
+   Add these secrets:
+   - `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token
+     - Create at: https://dash.cloudflare.com/profile/api-tokens
+     - Required permissions: D1 Edit, Workers Scripts Edit, Account Settings Read
+   - `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID
+     - Found in dashboard URL or Workers overview page
+
+2. **Push to GitHub**
+   ```bash
+   git push origin your-branch
+   ```
+
+   The workflows automatically:
+   - ✅ Create the D1 database via Cloudflare API
+   - ✅ Update `wrangler.jsonc` with the database ID
+   - ✅ Run database migrations
+   - ✅ Deploy to Cloudflare Workers
+
+3. **Monitor Progress**
+   - View workflow runs at: `https://github.com/YOUR-USERNAME/backpack/actions`
+   - Look for "Setup D1 Database" and "Migrate D1 Database" workflows
+   - Check logs if any step fails
+
+### Manual Setup
+
+If you prefer manual control or local development:
 
 1. **Clone and Install**
    ```bash
@@ -201,20 +234,9 @@ npm run cf-typegen
 
    Visit `http://localhost:8787` to see the web app.
 
-### Deploying to Production
-
-1. **Update wrangler.jsonc**
-   - Ensure `database_id` is set correctly
-   - The worker name will determine your URL: `backpack.YOUR-ACCOUNT.workers.dev`
-
-2. **Deploy**
+5. **Deploy to Production**
    ```bash
    npm run deploy
-   ```
-
-3. **Run Production Migrations** (if not done yet)
-   ```bash
-   wrangler d1 execute backpack --remote --file=./migrations/0001_initial.sql
    ```
 
 ## Connecting AI Assistants
