@@ -9,6 +9,9 @@ import {
 	createSessionCookie,
 	getSessionFromCookie,
 	clearSessionCookie,
+	createOAuthToken,
+	verifyOAuthToken,
+	verifyOAuthClientCredentials,
 	type User,
 } from "./auth";
 import { landingPage, signupPage, loginPage, dashboardPage } from "./html";
@@ -265,7 +268,62 @@ export default {
 			});
 		}
 
-		// MCP Routes - require authentication via API key
+		// OAuth token endpoint
+		if (url.pathname === "/oauth/token" && request.method === "POST") {
+			try {
+				const formData = await request.formData();
+				const grantType = formData.get("grant_type");
+				const clientId = formData.get("client_id");
+				const clientSecret = formData.get("client_secret");
+
+				if (grantType !== "client_credentials") {
+					return addCorsHeaders(
+						jsonResponse({ error: "unsupported_grant_type" }, 400),
+					);
+				}
+
+				if (!clientId || !clientSecret) {
+					return addCorsHeaders(
+						jsonResponse({ error: "invalid_client" }, 401),
+					);
+				}
+
+				const user = await verifyOAuthClientCredentials(
+					env.DB,
+					clientId as string,
+					clientSecret as string,
+				);
+
+				if (!user) {
+					return addCorsHeaders(
+						jsonResponse({ error: "invalid_client" }, 401),
+					);
+				}
+
+				const token = await createOAuthToken(env.DB, user.id);
+
+				if (!token) {
+					return addCorsHeaders(
+						jsonResponse({ error: "server_error" }, 500),
+					);
+				}
+
+				return addCorsHeaders(
+					jsonResponse({
+						access_token: token.access_token,
+						token_type: "Bearer",
+						expires_in: token.expires_in,
+					}),
+				);
+			} catch (error) {
+				console.error("OAuth token error:", error);
+				return addCorsHeaders(
+					jsonResponse({ error: "server_error" }, 500),
+				);
+			}
+		}
+
+		// MCP Routes - require authentication via API key or OAuth token
 		if (url.pathname === "/message") {
 			return addCorsHeaders(
 				Response.redirect(new URL("/sse/message", url).toString(), 302),
@@ -274,24 +332,32 @@ export default {
 
 		// SSE endpoints handle Server-Sent Events
 		if (url.pathname === "/sse" || url.pathname === "/sse/message") {
-			// Extract API key from environment variable in request headers
-			// The mcp-remote proxy will pass through environment variables
-			const apiKey =
-				request.headers.get("x-backpack-api-key") ||
-				request.headers.get("authorization")?.replace("Bearer ", "") ||
-				url.searchParams.get("api_key");
+			let user: User | null = null;
 
-			if (!apiKey) {
+			// Try OAuth token first (from Authorization header)
+			const authHeader = request.headers.get("authorization");
+			if (authHeader?.startsWith("Bearer ")) {
+				const token = authHeader.replace("Bearer ", "");
+				user = await verifyOAuthToken(env.DB, token);
+			}
+
+			// Fall back to API key authentication
+			if (!user) {
+				const apiKey =
+					request.headers.get("x-backpack-api-key") ||
+					url.searchParams.get("api_key");
+
+				if (apiKey) {
+					user = await verifyApiKey(env.DB, apiKey);
+				}
+			}
+
+			if (!user) {
 				return addCorsHeaders(
-					new Response("API key required. Please provide BACKPACK_API_KEY.", {
+					new Response("Authentication required. Provide OAuth token or API key.", {
 						status: 401,
 					}),
 				);
-			}
-
-			const user = await verifyApiKey(env.DB, apiKey);
-			if (!user) {
-				return addCorsHeaders(new Response("Invalid API key", { status: 401 }));
 			}
 
 			// Store user in env for tools to access

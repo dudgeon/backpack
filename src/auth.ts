@@ -6,6 +6,8 @@ export interface User {
 	id: number;
 	email: string;
 	api_key: string;
+	oauth_client_id?: string;
+	oauth_client_secret?: string;
 	created_at: string;
 }
 
@@ -43,12 +45,14 @@ export async function createUser(
 	try {
 		const passwordHash = await hashPassword(password);
 		const apiKey = generateApiKey();
+		const oauthClientId = generateApiKey();
+		const oauthClientSecret = generateApiKey();
 
 		const result = await db
 			.prepare(
-				"INSERT INTO users (email, password_hash, api_key) VALUES (?, ?, ?) RETURNING id, email, api_key, created_at",
+				"INSERT INTO users (email, password_hash, api_key, oauth_client_id, oauth_client_secret) VALUES (?, ?, ?, ?, ?) RETURNING id, email, api_key, oauth_client_id, oauth_client_secret, created_at",
 			)
-			.bind(email, passwordHash, apiKey)
+			.bind(email, passwordHash, apiKey, oauthClientId, oauthClientSecret)
 			.first<User>();
 
 		return result;
@@ -70,7 +74,7 @@ export async function authenticateUser(
 		const passwordHash = await hashPassword(password);
 		const user = await db
 			.prepare(
-				"SELECT id, email, api_key, created_at FROM users WHERE email = ? AND password_hash = ?",
+				"SELECT id, email, api_key, oauth_client_id, oauth_client_secret, created_at FROM users WHERE email = ? AND password_hash = ?",
 			)
 			.bind(email, passwordHash)
 			.first<User>();
@@ -150,4 +154,72 @@ export function getSessionFromCookie(
 
 export function clearSessionCookie(): string {
 	return "session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0";
+}
+
+/**
+ * OAuth token management
+ */
+export async function createOAuthToken(
+	db: D1Database,
+	userId: number,
+): Promise<{ access_token: string; expires_in: number } | null> {
+	try {
+		const accessToken = generateApiKey();
+		const expiresIn = 3600; // 1 hour
+		const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
+
+		await db
+			.prepare(
+				"INSERT INTO oauth_tokens (user_id, access_token, expires_at) VALUES (?, ?, ?)",
+			)
+			.bind(userId, accessToken, expiresAt)
+			.run();
+
+		return { access_token: accessToken, expires_in: expiresIn };
+	} catch (error) {
+		console.error("Error creating OAuth token:", error);
+		return null;
+	}
+}
+
+export async function verifyOAuthToken(
+	db: D1Database,
+	accessToken: string,
+): Promise<User | null> {
+	try {
+		const result = await db
+			.prepare(
+				`SELECT u.id, u.email, u.api_key, u.oauth_client_id, u.oauth_client_secret, u.created_at
+				FROM users u
+				INNER JOIN oauth_tokens t ON u.id = t.user_id
+				WHERE t.access_token = ? AND t.expires_at > datetime('now')`,
+			)
+			.bind(accessToken)
+			.first<User>();
+
+		return result;
+	} catch (error) {
+		console.error("Error verifying OAuth token:", error);
+		return null;
+	}
+}
+
+export async function verifyOAuthClientCredentials(
+	db: D1Database,
+	clientId: string,
+	clientSecret: string,
+): Promise<User | null> {
+	try {
+		const user = await db
+			.prepare(
+				"SELECT id, email, api_key, oauth_client_id, oauth_client_secret, created_at FROM users WHERE oauth_client_id = ? AND oauth_client_secret = ?",
+			)
+			.bind(clientId, clientSecret)
+			.first<User>();
+
+		return user;
+	} catch (error) {
+		console.error("Error verifying OAuth client credentials:", error);
+		return null;
+	}
 }

@@ -245,6 +245,8 @@ export function dashboardPage(
 	user: {
 		email: string;
 		api_key: string;
+		oauth_client_id?: string;
+		oauth_client_secret?: string;
 	},
 	hostname: string,
 ): string {
@@ -256,27 +258,42 @@ export function dashboardPage(
         <h1>Your Backpack Dashboard</h1>
         <h2>Connected as ${user.email}</h2>
 
-        <div class="api-key">
-            <strong>Your API Key:</strong><br>
-            <span style="user-select: all;">${user.api_key}</span>
-        </div>
-
         <div class="instructions">
             <h3>📱 Connect to Claude Desktop</h3>
-            <p><strong>Step 1:</strong> Copy your API key above</p>
-            <p><strong>Step 2:</strong> In Claude Desktop, go to <strong>Settings → Developer → Edit Config</strong></p>
-            <p><strong>Step 3:</strong> Add this to your config file:</p>
-            <pre><code>{
-  "mcpServers": {
-    "backpack": {
-      "url": "${mcpUrl}",
-      "headers": {
-        "X-Backpack-API-Key": "${user.api_key}"
-      }
-    }
-  }
-}</code></pre>
-            <p><strong>Step 4:</strong> Save the config and restart Claude Desktop</p>
+            <p><strong>Step 1:</strong> In Claude Desktop, click the <strong>🔌</strong> icon or go to <strong>Settings → Integrations</strong></p>
+            <p><strong>Step 2:</strong> Click <strong>"Add custom connector"</strong></p>
+            <p><strong>Step 3:</strong> Fill in the connection details:</p>
+
+            <div style="margin: 15px 0;">
+                <div class="api-key" style="margin-bottom: 10px;">
+                    <strong>Name:</strong> Backpack (or any name you prefer)
+                </div>
+
+                <div class="api-key" style="margin-bottom: 10px;">
+                    <strong>URL:</strong><br>
+                    <span style="user-select: all;">${mcpUrl}</span>
+                </div>
+            </div>
+
+            <p><strong>Step 4:</strong> Click <strong>"Advanced settings"</strong> and add your credentials:</p>
+
+            <div style="margin: 15px 0;">
+                <div class="api-key" style="margin-bottom: 10px;">
+                    <strong>OAuth Client ID:</strong><br>
+                    <span style="user-select: all; word-break: break-all; font-size: 13px;">${user.oauth_client_id || "Not available"}</span>
+                </div>
+
+                <div class="api-key" style="margin-bottom: 10px;">
+                    <strong>OAuth Client Secret:</strong><br>
+                    <span style="user-select: all; word-break: break-all; font-size: 13px;">${user.oauth_client_secret || "Not available"}</span>
+                </div>
+            </div>
+
+            <p><strong>Step 5:</strong> Click <strong>"Add"</strong> and you're connected!</p>
+
+            <p style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
+                <strong>💡 Note:</strong> Keep your OAuth credentials private. They provide secure access to your Backpack.
+            </p>
         </div>
 
         <div class="instructions">
