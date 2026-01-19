@@ -269,21 +269,14 @@ export function dashboardPage(
             <pre><code>{
   "mcpServers": {
     "backpack": {
-      "command": "npx",
-      "args": ["mcp-remote", "${mcpUrl}"],
-      "env": {
-        "BACKPACK_API_KEY": "PASTE_YOUR_API_KEY_HERE"
+      "url": "${mcpUrl}",
+      "headers": {
+        "X-Backpack-API-Key": "${user.api_key}"
       }
     }
   }
 }</code></pre>
-            <p><strong>Step 4:</strong> Replace <code>PASTE_YOUR_API_KEY_HERE</code> with your API key</p>
-            <p><strong>Step 5:</strong> Save the config and restart Claude Desktop</p>
-            <p style="margin-top: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-                <strong>Note:</strong> The <code>npx mcp-remote</code> command is required because Claude Desktop
-                needs a local process to connect to remote MCP servers. It will be installed automatically
-                when Claude starts.
-            </p>
+            <p><strong>Step 4:</strong> Save the config and restart Claude Desktop</p>
         </div>
 
         <div class="instructions">
