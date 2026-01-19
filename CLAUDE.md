@@ -2,6 +2,44 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CRITICAL: Operational Constraints
+
+**THE USER CANNOT PERFORM CLI ACTIONS ON THIS PROJECT**
+
+This is a hard constraint that MUST be respected at all times:
+
+- ❌ NEVER ask the user to run git commands
+- ❌ NEVER ask the user to run npm/node commands
+- ❌ NEVER ask the user to run curl or any CLI tools
+- ❌ NEVER ask the user to execute any terminal commands
+- ✅ YOU must complete all technical work autonomously
+- ✅ YOU must use GitHub web UI when you lack permissions
+- ✅ YOU must push to `claude/*` branches (you have permission)
+- ✅ YOU must find creative solutions within your permissions
+
+### Your Permissions
+
+**What you CAN do:**
+- Push to branches matching `claude/*` pattern (e.g., `claude/feature-name-cmbzD`)
+- Read/write all files in the repository
+- Create commits on `claude/*` branches
+- Use Bash tool for git operations on allowed branches
+
+**What you CANNOT do:**
+- Push directly to `main` branch (403 forbidden)
+- Merge pull requests (no GitHub token in environment)
+- Trigger GitHub Actions via API (no authentication token)
+
+### Workarounds for Limitations
+
+When you encounter permission issues:
+
+1. **For merging to main**: Push your changes to a `claude/*` branch and provide the GitHub web URL for the user to click "Merge" button
+2. **For triggering workflows**: Push to `claude/*` branch and provide GitHub Actions URL for the user to click "Run workflow" button
+3. **For deployments**: Use GitHub Actions workflows with manual triggers (`workflow_dispatch`)
+
+**NEVER** ask the user to run commands. Always provide clickable URLs for web-based actions.
+
 ## Project Overview
 
 **Backpack** is a universal MCP (Model Context Protocol) server that lets users augment any AI assistant (Claude, ChatGPT, Gemini, etc.) with personal knowledge, context, and integrations. It reduces platform lock-in by providing a single, user-controlled backend that works with multiple AI assistants.

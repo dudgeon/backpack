@@ -6,6 +6,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "backpack",
 	"main": "src/index.ts",
+	"account_id": "0e0a12f91d808a8536743acc49a267cf",
 	"compatibility_date": "2025-03-10",
 	"compatibility_flags": ["nodejs_compat"],
 	"migrations": [
