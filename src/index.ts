@@ -255,7 +255,8 @@ export default {
 				return redirect("/login");
 			}
 
-			return htmlResponse(dashboardPage(user));
+			const hostname = new URL(request.url).hostname;
+			return htmlResponse(dashboardPage(user, hostname));
 		}
 
 		if (url.pathname === "/logout" && request.method === "POST") {
