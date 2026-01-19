@@ -1,92 +1,164 @@
-# Backpack 🎒 — An MCP Playground for Shape-Shifting Tools
+# Backpack 🎒
 
-Backpack is an experimental MCP server that lets you build, tweak, and share AI tools inside the server—no IDE or code pushes required. Using handy meta-tools, you can spin up new "plastic-tools," adjust them on the fly, and decide whether each one stays private or goes public—all through the same chat interface that uses them. 🛠️✨
+**Augment any AI assistant with your personal tools and knowledge**
 
-We're treating Backpack as a learning adventure, so expect rapid iterations, a few bumps, and plenty of room for your ideas to steer where we head next. Dive in, pack your favorite tools, and help us see what an MCP toolbox can become!
+Backpack is a universal MCP (Model Context Protocol) server that lets you personalize Claude, ChatGPT, Gemini, and other AI assistants with your own knowledge, context, and integrations—reducing platform lock-in and putting you in control.
 
-## About This Server
+## Features
 
-This is a remote MCP server that runs on Cloudflare Workers without authentication. 
+### Current (MVP)
+- 🔐 **User Authentication** - Secure account creation and login
+- 🌐 **Web Dashboard** - Simple UI for managing your Backpack
+- 🔌 **Claude Desktop Support** - Connect your Backpack to Claude Desktop
+- 🛠️ **Basic Tools** - Information and user verification tools
 
-## Get started: 
+### Coming Soon
+- 📚 **Knowledge Management** - Store and retrieve personal facts and notes
+- 🔗 **Google Docs Integration** - Read and write to your documents
+- 💳 **Financial Data** - Connect to your credit card for spending insights
+- 🤖 **ChatGPT & Gemini Support** - Use Backpack with other AI assistants
+- 🎨 **Custom Tools** - Build your own capabilities
 
-[![Deploy to Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless)
+## Quick Start
 
-This will deploy your MCP server to a URL like: `remote-mcp-server-authless.<your-account>.workers.dev`
+### For Users
 
-Alternatively, you can use the command line below to get the remote MCP Server created on your local machine:
-```bash
-npm create cloudflare@latest -- my-mcp-server --template=cloudflare/ai/demos/remote-mcp-authless
-```
+1. **Visit your deployed Backpack**
+   - Go to `https://backpack.YOUR-ACCOUNT.workers.dev`
+   - Sign up for an account
+   - Get your API key from the dashboard
 
-## Available Routes
+2. **Connect Claude Desktop**
+   - Open Claude Desktop → Settings → Developer → Edit Config
+   - Add this configuration:
 
-Once deployed, your MCP server will be available at the following URLs:
+   ```json
+   {
+     "mcpServers": {
+       "backpack": {
+         "command": "npx",
+         "args": [
+           "mcp-remote",
+           "https://backpack.YOUR-ACCOUNT.workers.dev/sse"
+         ],
+         "env": {
+           "BACKPACK_API_KEY": "your-api-key-from-dashboard"
+         }
+       }
+     }
+   }
+   ```
 
-### Production URLs (after deployment)
-- **Root**: `https://remote-mcp-server-authless.<your-account>.workers.dev/` → Redirects to `/sse`
-- **Message**: `https://remote-mcp-server-authless.<your-account>.workers.dev/message` → Redirects to `/sse/message`
-- **SSE Endpoint**: `https://remote-mcp-server-authless.<your-account>.workers.dev/sse` → Primary Server-Sent Events endpoint
-- **SSE Message**: `https://remote-mcp-server-authless.<your-account>.workers.dev/sse/message` → Alternative SSE endpoint
-- **MCP Direct**: `https://remote-mcp-server-authless.<your-account>.workers.dev/mcp` → Direct MCP protocol access
+3. **Restart Claude Desktop**
+   - Your Backpack tools will now be available in Claude!
 
-### Local Development URLs
-- **Root**: `http://localhost:8787/` → Redirects to `/sse`
-- **Message**: `http://localhost:8787/message` → Redirects to `/sse/message`
-- **SSE Endpoint**: `http://localhost:8787/sse` → Primary Server-Sent Events endpoint
-- **SSE Message**: `http://localhost:8787/sse/message` → Alternative SSE endpoint
-- **MCP Direct**: `http://localhost:8787/mcp` → Direct MCP protocol access
+### For Developers
 
-## Customizing your MCP Server
+#### Automated Setup (Recommended)
 
-To add your own [tools](https://developers.cloudflare.com/agents/model-context-protocol/tools/) to the MCP server, define each tool inside the `init()` method of `src/index.ts` using `this.server.tool(...)`.
+The repository includes GitHub Actions workflows that automatically handle D1 database creation and deployment:
 
-## Testing Your Endpoints
+1. **Add GitHub Secrets**
 
-You can test your MCP server endpoints using curl:
+   Go to your repository → Settings → Secrets and variables → Actions → New repository secret
 
-```bash
-# Test SSE endpoint (primary connection method)
-curl -N https://remote-mcp-server-authless.<your-account>.workers.dev/sse
+   Add these secrets:
+   - `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token ([create one here](https://dash.cloudflare.com/profile/api-tokens))
+     - Permissions needed: D1 Edit, Workers Scripts Edit, Account Settings Read
+   - `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID (found in dashboard URL or Workers overview)
 
-# Test root redirect
-curl -I https://remote-mcp-server-authless.<your-account>.workers.dev/
+2. **Push to GitHub**
+   ```bash
+   git push origin your-branch
+   ```
 
-# Test message redirect
-curl -I https://remote-mcp-server-authless.<your-account>.workers.dev/message
+   The workflows will automatically:
+   - ✅ Create the D1 database
+   - ✅ Update `wrangler.jsonc` with the database ID
+   - ✅ Run migrations
+   - ✅ Deploy to Cloudflare Workers
 
-# For local development
-curl -N http://localhost:8787/sse
-``` 
+#### Manual Setup
 
-## Connect to Cloudflare AI Playground
+1. **Clone and Install**
+   ```bash
+   git clone <your-repo>
+   cd backpack
+   npm install
+   ```
 
-You can connect to your MCP server from the Cloudflare AI Playground, which is a remote MCP client:
+2. **Create D1 Database**
+   ```bash
+   # Create the database
+   wrangler d1 create backpack
 
-1. Go to https://playground.ai.cloudflare.com/
-2. Enter your deployed MCP server SSE URL: `https://remote-mcp-server-authless.<your-account>.workers.dev/sse`
-3. You can now use your MCP tools directly from the playground!
+   # Copy the database_id from output and update wrangler.jsonc
+   ```
 
-## Connect Claude Desktop to your MCP server
+3. **Run Migrations**
+   ```bash
+   # Local development
+   wrangler d1 execute backpack --local --file=./migrations/0001_initial.sql
 
-You can also connect to your remote MCP server from local MCP clients, by using the [mcp-remote proxy](https://www.npmjs.com/package/mcp-remote). 
+   # Production
+   wrangler d1 execute backpack --remote --file=./migrations/0001_initial.sql
+   ```
 
-To connect to your MCP server from Claude Desktop, follow [Anthropic's Quickstart](https://modelcontextprotocol.io/quickstart/user) and within Claude Desktop go to Settings > Developer > Edit Config.
+4. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
 
-Update with this configuration:
+   Visit `http://localhost:8787` to see your local Backpack.
 
-```json
-{
-  "mcpServers": {
-    "backpack": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "http://localhost:8787/sse"  // or https://remote-mcp-server-authless.<your-account>.workers.dev/sse
-      ]
-    }
-  }
-}
-```
+5. **Deploy to Production**
+   ```bash
+   npm run deploy
+   ```
 
-Restart Claude and you should see the tools become available. 
+## Architecture
+
+Backpack runs on Cloudflare's edge network:
+
+- **Cloudflare Workers** - Serverless compute
+- **Cloudflare D1** - SQLite database for user accounts
+- **Durable Objects** - Stateful MCP sessions
+- **TypeScript** - Type-safe development
+
+## Documentation
+
+- **[CLAUDE.md](./CLAUDE.md)** - Comprehensive guide for AI assistants and developers
+- **MCP Protocol** - [modelcontextprotocol.io](https://modelcontextprotocol.io/)
+- **Cloudflare Workers** - [developers.cloudflare.com/workers](https://developers.cloudflare.com/workers/)
+
+## Security
+
+- Passwords are hashed (SHA-256)
+- API keys are cryptographically random
+- SQL injection protection via prepared statements
+- HTTPS enforced on all connections
+- HttpOnly cookies for web sessions
+
+**Note**: This is an MVP. For production use, consider additional security measures like rate limiting, email verification, and 2FA.
+
+## Roadmap
+
+- [x] Basic authentication and MCP server
+- [x] Web dashboard and connection instructions
+- [ ] Knowledge management system
+- [ ] Google Docs integration
+- [ ] Financial data integration
+- [ ] Multi-AI assistant support (ChatGPT, Gemini)
+- [ ] Tool marketplace
+
+## Contributing
+
+Contributions welcome! Please see [CLAUDE.md](./CLAUDE.md) for development guidelines.
+
+## License
+
+MIT
+
+## Contact
+
+Maintained by dudgeon@gmail.com

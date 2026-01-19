@@ -24,5 +24,12 @@
 	},
 	"observability": {
 		"enabled": true
-	}
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "backpack",
+			"database_id": "daea8d97-5310-499e-8993-2844465d466a"
+		}
+	]
 }
